@@ -26,7 +26,7 @@ Foram utilizados algumas boas práticas, como factory pattern, guards, dependenc
 - Faça o clone do projeto localmente utilizando:
 
 ```bash
-git clone <url_aqui>
+git clone https://github.com/g42puts/shipay_backend_challenge.git
 ```
 
 - Crie e ative o ambiente virtual:
