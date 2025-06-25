@@ -6,12 +6,13 @@ Esta API foi desenvolvida como projeto de teste para o desafio para o cargo de B
 
 Foi utilizado o **model.sql** providenciado no repositório do teste como estrutura base do banco de dados, decidi adicionar o model BlacklistedToken para blacklistar tokens antigas, dando mais segurança para a API e ao usuário.
 
-Foram utilizados algumas boas práticas, como factory pattern, guards, dependency injection, testes unitários, de integração e e2e.
+Foram utilizados algumas boas práticas, como factory pattern, guards, dependency injection, swagger para documentação, testes unitários, de integração e e2e.
 
 ### Tecnologias Utilizadas
 
-- Framework: FastAPI
+- Framework: FastAPI + Uvicorn
 - ORM: SqlAlchemy com Alembic (migrations)
+- Database: MySQL + Docker
 - Database Validation: Pydantic
 - Ferramentas de Teste: Pytest, freezegun, testcontainers (docker)
 - Autenticação: PyJWT
@@ -20,6 +21,11 @@ Foram utilizados algumas boas práticas, como factory pattern, guards, dependenc
 
 - Docker instalado;
 - Python 3.13;
+
+### Documentação de rotas
+
+- [Rotas](/docs//routes.md)
+- Mais detalhes sobre a rota podem ser encontrados na rota **http://localhost:8000/docs**
 
 ### Primeiros passos
 
