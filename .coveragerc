@@ -1,0 +1,8 @@
+[run]
+omit =
+    */__init__.py
+    app/interfaces/modules/auth_router.py
+    app/interfaces/modules/user_router.py
+    app/interfaces/modules/claim_router.py
+    app/interfaces/modules/role_router.py
+    app/interfaces/password_helper.py

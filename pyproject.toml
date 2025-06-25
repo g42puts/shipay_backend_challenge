@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = ""
+authors = ["g42puts <gilmar.neo@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+sqlalchemy = "^2.0.41"
+uvicorn = {extras = ["standard"], version = "^0.34.3"}
+alembic = "^1.16.2"
+pydantic = "^2.11.7"
+pydantic-settings = "^2.9.1"
+pyjwt = "^2.10.1"
+pwdlib = {extras = ["argon2"], version = "^0.2.1"}
+pymysql = "^1.1.1"
+testcontainers = {extras = ["mysql"], version = "^4.10.0"}
+freezegun = "^1.5.2"
+python-multipart = "^0.0.20"
+tzdata = "^2025.2"
+fastapi = "^0.115.13"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-asyncio = "^1.0.0"
+httpx = "^0.28.1"
+pytest-cov = "^6.2.1"
+taskipy = "^1.14.1"
+
+[tool.pytest.ini_options]
+addopts = """
+    --cov=app
+    --cov-report=term-missing
+    --ignore=app/types/modules/auth_router.py
+    --ignore=app/types/modules/user_router.py
+    --ignore=app/types/modules/claim_router.py
+    --ignore=app/types/modules/role_router.py
+    --ignore=app/types/password_helper.py
+"""
+testpaths = ["tests"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.taskipy.tasks]
+test = "poetry run pytest"
+pytest = "poetry run pytest"
+lint = "pylint tests taskipy"
+dev = "poetry run uvicorn app.main:app --reload"
+generate = "alembic revision --autogenerate"
+migrate = "alembic upgrade head"
+seed = "python app/seed.py"
+docker = "docker compose -f docker-compose.yaml up -d"

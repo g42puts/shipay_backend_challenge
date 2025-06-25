@@ -1,0 +1,21 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+.env
+.env.dev
+.env.development
+.env.prod
+.env.production
+.env.local
+
+/*.cache
+/pytest_cache
+__pycache__
+.venv
+poetry.lock
+teste.md
+model.sql
+.coverage
+.pytest_cache
+
+migrations/
+migrations/versions/*
+ER_diagram.png
