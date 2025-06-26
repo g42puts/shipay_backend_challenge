@@ -6,9 +6,11 @@ Esta API foi desenvolvida como projeto de teste para o desafio para o cargo de B
 
 Foi utilizado o **model.sql** providenciado no repositório do teste como estrutura base do banco de dados, decidi adicionar o model BlacklistedToken para blacklistar tokens antigas, dando mais segurança para a API e ao usuário.
 
-Foram utilizados algumas boas práticas, como factory pattern, guards, dependency injection, swagger para documentação, testes unitários, de integração e e2e.
+Foram utilizados algumas boas práticas, como **Adapter and Factory Pattern**, **Dependency Injection**, **Guards**, **Swagger** para documentação, **testes unitários, de integração e e2e**.
 
-### Tecnologias Utilizadas
+---
+
+## Tecnologias Utilizadas
 
 - Framework: FastAPI + Uvicorn
 - ORM: SqlAlchemy com Alembic (migrations)
@@ -17,142 +19,188 @@ Foram utilizados algumas boas práticas, como factory pattern, guards, dependenc
 - Ferramentas de Teste: Pytest, freezegun, testcontainers (docker)
 - Autenticação: PyJWT
 
-### Requisitos
+---
 
-- Docker instalado;
-- Python 3.13;
+## Requisitos
 
-### Documentação de rotas
+- Docker instalado
+- Python 3.13
+- Poetry
+
+Caso não tenha o poetry instalado, basta instalar ele através do pip: `pip install poetry`
+
+---
+
+## Documentação de rotas
 
 - [Rotas](/docs//routes.md)
-- Mais detalhes sobre a rota podem ser encontrados na rota **http://localhost:8000/docs**
+- Mais detalhes sobre a rota podem ser encontrados na rota **http://localhost:8000/docs** quando a API for inicializada.
+
+---
 
 ### Primeiros passos
 
-- Faça o clone do projeto localmente utilizando:
+- #### Faça o clone do projeto localmente utilizando
 
-```bash
-git clone https://github.com/g42puts/shipay_backend_challenge.git
-```
+    ```bash
+    git clone https://github.com/g42puts/shipay_backend_challenge.git
+    ```
 
-- Crie e ative o ambiente virtual:
+- #### Crie e ative o ambiente virtual
 
-```bash
-python -m .venv .
-.\.venv\Scripts\activate
-```
+    ```bash
+    python -m venv .venv
+    .\.venv\Scripts\activate
+    ```
 
-- Instale as dependências:
+- #### Instale as dependências
 
-```bash
-poetry install
-```
 
-- Suba os containers Docker:
 
-```bash
-poetry run task docker
-```
+    ```bash
+    poetry install
+    ```
 
-- Inicialize as migrations do Alembic (apenas se necessário):
+- #### Crie uma cópia do arquivo .env.example com nome .env
 
-```bash
-alembic init migrations
-```
+- #### Suba os containers Docker
 
-- Gere e aplique as migrations:
+    ```bash
+    poetry run task docker
+    ```
 
-```bash
-poetry run task generate
-poetry run task migrate
-```
+- #### Inicialize as migrations do Alembic (apenas se necessário)
 
-- Execute o seed para criar os cargos "user" e "admin" e um usuário admin:
+    ```bash
+    alembic init migrations
+    ```
 
-```bash
-poetry run task seed
-```
+- #### Gere e aplique as migrations no ambiente local
 
-## Como executar o projeto em ambiente local
+    ```bash
+    poetry run task generate
+    poetry run task migrate
+    ```
 
-- Clone o repositório
+- #### Execute o seed para criar os cargos "user" e "admin" e um usuário admin
 
-```bash
-git clone <url_aqui>
-```
+    ```bash
+    poetry run task seed
+    ```
 
-- Crie e ative o ambiente virtual
+- #### Execute a API localmente
 
-```bash
-python -m venv .venv
-.\.venv\Scripts\activate
-```
+    ```bash
+    poetry run task dev
+    ```
 
-- Instale as dependências:
+### Como executar o projeto em ambiente local
 
-```bash
-poetry install
-```
+- #### Clone o repositório
 
-- Suba os containers Docker (banco de dados):
+    ```bash
+    git clone https://github.com/g42puts/shipay_backend_challenge.git
+    ```
 
-```bash
-poetry run task docker
-```
+- #### Crie e ative o ambiente virtual
 
-- Gere e aplique as migrations:
+    ```bash
+    python -m venv .venv
+    .\.venv\Scripts\activate
+    ```
 
-```bash
-poetry run task generate
-poetry run task migrate
-```
+- #### Instale as dependências
 
-- Execute o seed para criar os cargos e o usuário admin:
+    ```bash
+    poetry install
+    ```
 
-```bash
-poetry run task seed
-```
+- #### Suba os containers Docker (banco de dados)
 
-- Rode a aplicação localmente:
+    ```bash
+    poetry run task docker
+    ```
 
-```bash
-poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+- #### Gere e aplique as migrations
+
+    ```bash
+    poetry run task generate
+    poetry run task migrate
+    ```
+
+- #### Execute o seed para criar os cargos e o usuário admin
+
+    ```bash
+    poetry run task seed
+    ```
+
+- #### Rode a aplicação localmente
+
+    ```bash
+    poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    ```
 
 A API estará disponível em http://localhost:8000/api/v1
 
 ---
 
-## Como realizar o deploy em ambiente produtivo
+### Como realizar o deploy em ambiente produtivo
 
 1. Configure as variáveis de ambiente necessárias (exemplo: `DATABASE_URL`, `SECRET_KEY`, etc).
 2. Certifique-se de que o banco de dados esteja acessível pelo ambiente de produção.
 3. Instale as dependências de produção:
 
-```bash
-poetry install --no-dev
-```
+    ```bash
+    poetry install --no-dev
+    ```
 
-- Gere e aplique as migrations no banco de produção:
+- #### Gere e aplique as migrations no banco de produção
 
-```bash
-poetry run task generate
-poetry run task migrate
-```
+    ```bash
+    poetry run task generate
+    poetry run task migrate
+    ```
 
-- Execute o seed apenas se necessário (atenção para não sobrescrever dados em produção):
+- #### Execute o seed apenas se necessário (atenção para não sobrescrever dados em produção)
 
-```bash
-poetry run task seed
-```
+    ```bash
+    poetry run task seed
+    ```
 
-- Rode o servidor com um gerenciador de processos (exemplo: Gunicorn + Uvicorn Worker):
+--- 
 
-```bash
-gunicorn app.main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 4
-```
+Há a possibilidade de executar o servidor diretamente pelo terminal ou utilizando um Docker, caso queira utilizar o Docker, siga o passo 2:
 
-- Configure um proxy reverso (ex: Nginx) para expor a aplicação externamente, se necessário.
+
+1. #### Executar o servidor através do terminal com um gerenciador de processos (exemplo: Gunicorn + Uvicorn Worker)
+
+    **Windows**:
+
+    ```bash
+    poetry run task prod_win
+    ```
+
+    **Linux**:
+
+    ```bash
+    poetry run task prod_linux
+    ```
+
+2. #### Executar o servidor utilizando o Docker
+
+    - Crie a imagem do docker e faça o build da aplicação:
+   
+        ```bash
+        poetry run task prod_docker
+        ```
+
+    - Execute o servidor:
+
+        ```bash
+        poetry run task run_docker
+        ```
+
+- ### Configure um proxy reverso (ex: Nginx) para expor a aplicação externamente, se necessário
 
 ---
 

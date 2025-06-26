@@ -16,6 +16,5 @@ model.sql
 .coverage
 .pytest_cache
 
-migrations/
 migrations/versions/*
 ER_diagram.png
