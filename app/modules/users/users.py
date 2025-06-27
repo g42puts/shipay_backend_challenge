@@ -3,6 +3,7 @@ import secrets
 from http import HTTPStatus
 from typing import Annotated
 from datetime import datetime
+import re
 
 from fastapi import HTTPException, Query
 from sqlalchemy import select
@@ -20,26 +21,35 @@ class UserRouter(UserRouterInterface):
     def __init__(self, password_helper: PasswordHelperInterface):
         self.password_helper = password_helper
 
-    def create_user(self, user: UserSchema, session: SessionDep):
-        user_exists = session.query(User).where(User.email == user.email).first()
+    def _validate_email(self, email: str) -> bool:
+        email_regex = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+        return bool(re.fullmatch(email_regex, email))
+
+    def create_user(self, payload: UserSchema, session: SessionDep):
+        if not self._validate_email(payload.email):
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST, detail="Invalid email format"
+            )
+
+        user_exists = session.query(User).where(User.email == payload.email).first()
 
         if user_exists:
-            if user_exists.email == user.email:
+            if user_exists.email == payload.email:
                 raise HTTPException(
                     status_code=HTTPStatus.BAD_REQUEST, detail="Email already exists"
                 )
 
-        if not user.password:
+        if not payload.password:
             alphabet = string.ascii_letters + string.digits
             password = "".join(secrets.choice(alphabet) for _ in range(16))
         else:
-            password = user.password
+            password = payload.password
 
         new_user = User(
-            name=user.name,
-            email=user.email,
+            name=payload.name,
+            email=payload.email,
             password=self.password_helper.hash(password),
-            role_id=user.role_id,
+            role_id=payload.role_id,
             created_at=datetime.now(),
         )
 
@@ -93,7 +103,7 @@ class UserRouter(UserRouterInterface):
     def update_user(
         self,
         user_id: int,
-        user: UpdateUserSchema,
+        payload: UpdateUserSchema,
         session: SessionDep,
         current_user: CurrentUser,
     ):
@@ -104,19 +114,21 @@ class UserRouter(UserRouterInterface):
                     status_code=HTTPStatus.FORBIDDEN, detail="Not enough permissions"
                 )
 
-        if user.name is not None:
-            current_user.name = user.name
-        if user.email is not None:
+        if payload.name is not None:
+            current_user.name = payload.name
+        if payload.email is not None:
             existing_user = session.scalar(
-                select(User).where(User.email == user.email, User.id != current_user.id)
+                select(User).where(
+                    User.email == payload.email, User.id != current_user.id
+                )
             )
             if existing_user:
                 raise HTTPException(
                     status_code=HTTPStatus.CONFLICT, detail="Email already exists"
                 )
-            current_user.email = user.email
-        if user.password is not None:
-            current_user.password = self.password_helper.hash(user.password)
+            current_user.email = payload.email
+        if payload.password is not None:
+            current_user.password = self.password_helper.hash(payload.password)
 
         session.commit()
         session.refresh(current_user)

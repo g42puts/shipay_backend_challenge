@@ -14,8 +14,8 @@ def make_login(client: TestClient, email: str, password: str) -> str:
     return response.json()["access_token"]
 
 
-def test_create_claim(client: TestClient, user: User):
-    token = make_login(client, user.email, user.clean_password)
+def test_create_claim(client: TestClient, admin_user: User):
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     response = client.post(
         "/claim",
         headers={"Authorization": f"Bearer {token}"},
@@ -26,9 +26,9 @@ def test_create_claim(client: TestClient, user: User):
 
 
 def test_create_claim_already_exists(
-    client: TestClient, user: User, user_create_claim: Claim
+    client: TestClient, admin_user: User, user_create_claim: Claim
 ):
-    token = make_login(client, user.email, user.clean_password)
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     response = client.post(
         "/claim",
         headers={"Authorization": f"Bearer {token}"},
@@ -38,9 +38,11 @@ def test_create_claim_already_exists(
     assert response.json()["detail"] == "Claim already exists"
 
 
-def test_find_many_claims(client: TestClient, user: User, user_create_claim: Claim):
+def test_find_many_claims(
+    client: TestClient, admin_user: User, user_create_claim: Claim
+):
     claim_schema = ClaimPublic.model_validate(user_create_claim).model_dump()
-    token = make_login(client, user.email, user.clean_password)
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     response = client.get(
         "/claim",
         headers={"Authorization": f"Bearer {token}"},
@@ -49,8 +51,10 @@ def test_find_many_claims(client: TestClient, user: User, user_create_claim: Cla
     assert response.json() == {"claims": [claim_schema]}
 
 
-def test_find_claim_by_id(client: TestClient, user: User, user_create_claim: Claim):
-    token = make_login(client, user.email, user.clean_password)
+def test_find_claim_by_id(
+    client: TestClient, admin_user: User, user_create_claim: Claim
+):
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     claim_id = user_create_claim.id
     response = client.get(
         f"/claim/{claim_id}",
@@ -60,8 +64,8 @@ def test_find_claim_by_id(client: TestClient, user: User, user_create_claim: Cla
     assert response.json()["id"] == claim_id
 
 
-def test_find_claim_by_id_not_found(client: TestClient, user: User):
-    token = make_login(client, user.email, user.clean_password)
+def test_find_claim_by_id_not_found(client: TestClient, admin_user: User):
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     response = client.get(
         "/claim/999999",
         headers={"Authorization": f"Bearer {token}"},
@@ -70,8 +74,8 @@ def test_find_claim_by_id_not_found(client: TestClient, user: User):
     assert response.json()["detail"] == "Claim not found"
 
 
-def test_delete_claim(client: TestClient, user: User, user_create_claim: Claim):
-    token = make_login(client, user.email, user.clean_password)
+def test_delete_claim(client: TestClient, admin_user: User, user_create_claim: Claim):
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     response = client.delete(
         f"/claim/{user_create_claim.id}",
         headers={"Authorization": f"Bearer {token}"},
@@ -80,8 +84,8 @@ def test_delete_claim(client: TestClient, user: User, user_create_claim: Claim):
     assert response.json()["message"] == "Claim deleted"
 
 
-def test_delete_claim_not_found(client: TestClient, user: User):
-    token = make_login(client, user.email, user.clean_password)
+def test_delete_claim_not_found(client: TestClient, admin_user: User):
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     response = client.delete(
         "/claim/999999",
         headers={"Authorization": f"Bearer {token}"},

@@ -55,18 +55,20 @@ Caso não tenha o poetry instalado, basta instalar ele através do pip: `pip ins
 
 - #### Instale as dependências
 
-
-
     ```bash
     poetry install
     ```
 
 - #### Crie uma cópia do arquivo .env.example com nome .env
 
+    ```bash
+    cp .env.example .env
+    ```
+
 - #### Suba os containers Docker
 
     ```bash
-    poetry run task docker
+    poetry run task mysql_docker
     ```
 
 - #### Inicialize as migrations do Alembic (apenas se necessário)
@@ -82,13 +84,13 @@ Caso não tenha o poetry instalado, basta instalar ele através do pip: `pip ins
     poetry run task migrate
     ```
 
-- #### Execute o seed para criar os cargos "user" e "admin" e um usuário admin
+- #### Execute o script de seed para popular a database, criando a role "user" e "claim", alguns claims e também um usuário com role de "admin", o **email** e **senha** do usuário admin pode ser definida no **.env**
 
     ```bash
     poetry run task seed
     ```
 
-- #### Execute a API localmente
+- #### Execute a API localmente em modo de desenvolvimento
 
     ```bash
     poetry run task dev

@@ -30,11 +30,11 @@ def make_user():
     )
 
 
-def make_token(user):
+def make_token(admin_user: User):
     return create_access_token(
         {
-            "sub": user.email,
-            "user_id": str(user.id),
+            "sub": admin_user.email,
+            "user_id": str(admin_user.id),
             "token_type": "bearer",
             "jti": "jti-test",
         }

@@ -10,18 +10,26 @@ from app.models import User, BlacklistedToken
 from app.configs.configs import configs
 
 
-def test_jwt_invalid_token(client: TestClient, user: User):
+def make_login(client: TestClient, email: str, password: str) -> str:
+    response = client.post(
+        "/auth/login", data={"username": email, "password": password}
+    )
+    assert response.status_code == HTTPStatus.OK
+    return response.json()["access_token"]
+
+
+def test_jwt_invalid_token(client: TestClient, admin_user: User):
     response = client.delete(
-        f"/user/{user.id}", headers={"Authorization": "Bearer token-invalido"}
+        f"/user/{admin_user.id}", headers={"Authorization": "Bearer token-invalido"}
     )
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {"detail": "Could not validate credentials"}
 
 
-def test_get_token(client: TestClient, user):
+def test_get_token(client: TestClient, admin_user: User):
     response = client.post(
         "/auth/login",
-        data={"username": user.email, "password": user.clean_password},
+        data={"username": admin_user.email, "password": admin_user.clean_password},
     )
     token = response.json()
 
@@ -30,18 +38,18 @@ def test_get_token(client: TestClient, user):
     assert "token_type" in token
 
 
-def test_token_expired_after_72hrs(client: TestClient, user: User):
+def test_token_expired_after_72hrs(client: TestClient, admin_user: User):
     with freeze_time("2022-01-01 00:00:00"):
         response = client.post(
             "/auth/login",
-            data={"username": user.email, "password": user.clean_password},
+            data={"username": admin_user.email, "password": admin_user.clean_password},
         )
         assert response.status_code == HTTPStatus.OK
         token = response.json()["access_token"]
 
     with freeze_time("2022-05-01 00:31:00"):
         response = client.put(
-            f"/user/{user.id}",
+            f"/user/{admin_user.id}",
             headers={"Authorization": f"Bearer {token}"},
             json={
                 "username": "new_email@email.com",
@@ -62,20 +70,20 @@ def test_token_inexistent_user(client: TestClient):
 
 
 def test_get_token_with_wrong_password_should_return_error(
-    client: TestClient, user: User
+    client: TestClient, admin_user: User
 ):
     response = client.post(
         "/auth/login",
-        data={"username": user.email, "password": "wrong_password"},
+        data={"username": admin_user.email, "password": "wrong_password"},
     )
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json()["detail"] == "Incorrect password"
 
 
-def test_refresh_token(client: TestClient, user: User):
+def test_refresh_token(client: TestClient, admin_user: User):
     response = client.post(
         "/auth/login",
-        data={"username": user.email, "password": user.clean_password},
+        data={"username": admin_user.email, "password": admin_user.clean_password},
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json()["access_token"]
@@ -88,18 +96,10 @@ def test_refresh_token(client: TestClient, user: User):
     assert response.json()["access_token"]
 
 
-def make_login(client: TestClient, email: str, password: str) -> str:
-    response = client.post(
-        "/auth/login", data={"username": email, "password": password}
-    )
-    assert response.status_code == HTTPStatus.OK
-    return response.json()["access_token"]
-
-
 def test_logout_adds_token_to_blacklist(
-    client: TestClient, session: Session, user: User
+    client: TestClient, session: Session, admin_user: User
 ):
-    token = make_login(client, user.email, user.clean_password)
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     response = client.post(
         "/auth/logout",
         headers={"Authorization": f"Bearer {token}"},
@@ -115,15 +115,15 @@ def test_logout_adds_token_to_blacklist(
 
 
 def test_blacklisted_token_is_rejected(
-    client: TestClient, session: Session, user: User
+    client: TestClient, session: Session, admin_user: User
 ):
-    token = make_login(client, user.email, user.clean_password)
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     # Adiciona o token à blacklist manualmente
     payload = decode(token, configs.SECRET_KEY, algorithms=[configs.ALGORITHM])
     jti = payload["jti"]
     blacklisted = BlacklistedToken(
         jti=jti,
-        user_id=user.id,
+        user_id=admin_user.id,
         created_at=datetime.now(),
         expires_at=datetime.now()
         + timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_IN_MINUTES),
@@ -136,16 +136,19 @@ def test_blacklisted_token_is_rejected(
     assert response.json()["detail"] == "Token is blacklisted"
 
 
-def test_refresh_access_token_blacklisted(client: TestClient, session: Session, user: User):
-    token = make_login(client, user.email, user.clean_password)
+def test_refresh_access_token_blacklisted(
+    client: TestClient, session: Session, admin_user: User
+):
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     payload = decode(token, configs.SECRET_KEY, algorithms=[configs.ALGORITHM])
     jti = payload["jti"]
     # Adiciona o token à blacklist
     blacklisted = BlacklistedToken(
         jti=jti,
-        user_id=user.id,
+        user_id=admin_user.id,
         created_at=datetime.now(),
-        expires_at=datetime.now() + timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_IN_MINUTES),
+        expires_at=datetime.now()
+        + timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_IN_MINUTES),
     )
     session.add(blacklisted)
     session.commit()
@@ -157,22 +160,21 @@ def test_refresh_access_token_blacklisted(client: TestClient, session: Session, 
     assert response.json()["detail"] == "Token is blacklisted"
 
 
-def test_logout_blacklisted(client: TestClient, session: Session, user: User):
-    token = make_login(client, user.email, user.clean_password)
+def test_logout_blacklisted(client: TestClient, session: Session, admin_user: User):
+    token = make_login(client, admin_user.email, admin_user.clean_password)
     payload = decode(token, configs.SECRET_KEY, algorithms=[configs.ALGORITHM])
     jti = payload["jti"]
     # Adiciona o token à blacklist
     blacklisted = BlacklistedToken(
         jti=jti,
-        user_id=user.id,
+        user_id=admin_user.id,
         created_at=datetime.now(),
-        expires_at=datetime.now() + timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_IN_MINUTES),
+        expires_at=datetime.now()
+        + timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_IN_MINUTES),
     )
     session.add(blacklisted)
     session.commit()
     # Tenta logout
-    response = client.post(
-        "/auth/logout", headers={"Authorization": f"Bearer {token}"}
-    )
+    response = client.post("/auth/logout", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json()["detail"] == "Token is blacklisted"

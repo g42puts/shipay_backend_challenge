@@ -13,7 +13,6 @@ from app.factories.infra.auth.make_password_helper import make_password_helper
 from app.main import app
 from app.infra.db.db import get_session
 from app.models import Claim, User, Role, UserClaim
-from app.utils.utils import claims
 
 
 @pytest.fixture(scope="session")
@@ -64,7 +63,7 @@ def session_fixture(engine: Engine):
             print(f"Erro ao truncar tabelas: {e}")
 
 
-@pytest.fixture(name="user")
+@pytest.fixture(name="admin_user")
 def first_user_fixture(session: Session):
     password = "testtest"
     admin_role = session.query(Role).filter_by(description="admin").first()
