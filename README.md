@@ -109,16 +109,22 @@ Caso não tenha o poetry instalado, basta instalar ele através do pip: `pip ins
     .\.venv\Scripts\activate
     ```
 
+- #### Crie o arquivo .env ou crie uma cópia com o seguinte comando
+
+    ```bash
+    cp .env.example .env
+    ```
+
 - #### Instale as dependências
 
     ```bash
     poetry install
     ```
 
-- #### Suba os containers Docker (banco de dados)
+- #### Suba o Container do MySQL no D (banco de dados)
 
     ```bash
-    poetry run task docker
+    poetry run task mysql_docker
     ```
 
 - #### Gere e aplique as migrations
@@ -191,13 +197,13 @@ Há a possibilidade de executar o servidor diretamente pelo terminal ou utilizan
     - Crie a imagem do docker e faça o build da aplicação:
    
         ```bash
-        poetry run task prod_docker
+        poetry run task create_api_docker
         ```
 
     - Execute o servidor:
 
         ```bash
-        poetry run task run_docker
+        poetry run task prod_docker
         ```
 
 - ### Configure um proxy reverso (ex: Nginx) para expor a aplicação externamente, se necessário
