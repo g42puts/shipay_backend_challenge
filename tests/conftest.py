@@ -1,5 +1,7 @@
 import os
+from http import HTTPStatus
 from datetime import datetime
+from typing import Callable
 
 import pytest
 from alembic.config import Config
@@ -63,6 +65,18 @@ def session_fixture(engine: Engine):
             print(f"Erro ao truncar tabelas: {e}")
 
 
+@pytest.fixture(name="make_login_func")
+def make_login_func_fixture(client: TestClient) -> Callable[[str, str], str]:
+    def _make_login(email: str, password: str) -> str:
+        response = client.post(
+            "/auth/login", data={"username": email, "password": password}
+        )
+        assert response.status_code == HTTPStatus.OK
+        return response.json()["access_token"]
+
+    return _make_login
+
+
 @pytest.fixture(name="admin_user")
 def first_user_fixture(session: Session):
     password = "testtest"
@@ -101,7 +115,7 @@ def first_user_fixture(session: Session):
     return user
 
 
-@pytest.fixture(name="user2")
+@pytest.fixture(name="normal_user")
 def second_user_fixture(session: Session):
     password = "testtest"
     role = session.query(Role).filter_by(description="user").first()
@@ -122,7 +136,6 @@ def second_user_fixture(session: Session):
         session.commit()
         session.refresh(user)
 
-    # Não associar claims ao user2!
     user.clean_password = password
     return user
 
